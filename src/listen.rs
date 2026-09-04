@@ -35,7 +35,7 @@ fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
     }
     Ok(())
 }
-pub fn cli_listen(path: Option<&Path>) -> Result<()> {
+pub fn cli_listen(path: Option<&Path>, once: bool) -> Result<()> {
     let server = tiny_http::Server::http("127.0.0.1:27121")
         .map_err(|e| anyhow::anyhow!("Couldn't lift server: {}", e))?;
     loop {
@@ -44,5 +44,6 @@ pub fn cli_listen(path: Option<&Path>) -> Result<()> {
         if let Err(e) = handle_problem(&output, path) {
             eprintln!("Error handling problem: {e}");
         }
+        if once {return Ok(());}
     }
 }
