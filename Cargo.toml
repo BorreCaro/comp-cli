@@ -7,3 +7,5 @@ edition = "2024"
 tiny_http = "0.12"
 serde = { version = "1.0", features=["derive"] }
 serde_json = "1.0"
+clap = { version = "4.6.6", features = ["derive"] }
+anyhow = "1.0.104"
