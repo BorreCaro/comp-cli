@@ -27,13 +27,14 @@ fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
     let d = serde_json::from_str::<Data>(&output)?;
     let path = match path {
         Some(p) => p.to_path_buf(),
-        None => PathBuf::from(format!("problems/{}/tests", normalize_name(&d.name))),
+        None => PathBuf::from(format!("problems/{}", normalize_name(&d.name))),
     };
-    fs::create_dir_all(&path)?;
+    fs::create_dir_all(&path.join("tests"))?;
     for (i, test) in d.tests.iter().enumerate() {
-        fs::write(path.join(&format!("{}.in", i + 1)), &test.input)?;
-        fs::write(path.join(&format!("{}.out", i + 1)), &test.output)?;
+        fs::write(path.join(&format!("tests/{}.in", i + 1)), &test.input)?;
+        fs::write(path.join(&format!("tests/{}.out", i + 1)), &test.output)?;
     }
+    fs::write(path.join("main.cpp"), "")?;
     Ok(())
 }
 pub fn cli_listen(path: Option<&Path>, once: bool) -> Result<()> {
