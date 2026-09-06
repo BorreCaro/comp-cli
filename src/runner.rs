@@ -8,34 +8,38 @@ fn compile(source: &Path, path: &Path) -> Result<()> {
         .arg("-O2")
         .arg("-std=c++23")
         .arg("-o")
-        .arg(path.join("sol"))
+        .arg(path.join("sol").with_extension(std::env::consts::EXE_EXTENSION))
         .output()?;
+
     if !(comp_out.status.success()) {
-        bail!(String::from_utf8(comp_out.stderr)?);
+        bail!(String::from_utf8_lossy(&comp_out.stderr).into_owned());
     }
     Ok(())
 }
 fn compare_outputs(out1: &str, out2: &str) -> bool {
     out1.split_whitespace().eq(out2.split_whitespace())
 }
-fn manage_test(path: &Path, i: &u32) -> Result<()> {
-    let test_in = File::open(path.join(format!("tests/{i}.in")))?;
-    let output = Command::new(path.join("sol")).stdin(test_in).output()?;
+fn manage_test(path: &Path, tests_dir: &Path, i: u32) -> Result<()> {
+    let test_in = File::open(tests_dir.join(format!("{i}.in")))?;
+    let output = Command::new(path.join("sol").with_extension(std::env::consts::EXE_EXTENSION)).stdin(test_in).output()?;
     if !output.status.success() {
         println!("Test {i}: RTE");
+        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         return Ok(());
     }
-    let output = String::from_utf8(output.stdout)?;
-    let test_out = fs::read_to_string(path.join(format!("tests/{i}.out")))?;
+    let output = String::from_utf8_lossy(&output.stdout);
+    let test_out = fs::read_to_string(tests_dir.join(format!("{i}.out")))?;
     print!("Test {i}: ");
-    println!(
-        "{}",
-        if compare_outputs(&output, &test_out) {
-            "OK"
-        } else {
-            "WA"
-        }
-    );
+    if compare_outputs(&output, &test_out){
+        println!("OK");
+    }
+    else {
+        println!("WA");
+        println!("--- Expected");
+        print!("{test_out}");
+        println!("--- Got");
+        println!("{output}");
+    }
     Ok(())
 }
 pub fn run(path: Option<&Path>) -> Result<()> {
@@ -43,7 +47,8 @@ pub fn run(path: Option<&Path>) -> Result<()> {
         Some(p) => p.to_path_buf(),
         None => PathBuf::from("."),
     };
-    if !(path.join("tests").is_dir()) {
+    let tests_dir = path.join("tests");
+    if !tests_dir.is_dir() {
         bail!("Couldn't find tests directory");
     }
     // TODO: source code arg
@@ -55,16 +60,14 @@ pub fn run(path: Option<&Path>) -> Result<()> {
 
     let mut i = 1;
     loop {
-        if !(path.join(format!("tests/{i}.in")).exists()
-            && path.join(format!("tests/{i}.out")).exists())
+        if !(tests_dir.join(format!("{i}.in")).exists()
+            && tests_dir.join(format!("{i}.out")).exists())
         {
+            println!("Ran {} tests", i-1);
             break;
         }
-        manage_test(&path, &i)?;
+        manage_test(&path, &tests_dir, i)?;
         i += 1;
-    }
-    if i == 1 {
-        bail!("No tests found")
     }
     Ok(())
 }
