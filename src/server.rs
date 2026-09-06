@@ -1,10 +1,10 @@
-use std::error::Error;
-use tiny_http::Response;
+use anyhow::Result;
+use tiny_http::{Response, Server};
 
-pub fn listen(server: &tiny_http::Server) -> Result<String, Box<dyn Error>> {
+pub fn listen(server: &Server) -> Result<String> {
     let mut request = server.recv()?;
     let mut content = String::new();
     request.as_reader().read_to_string(&mut content)?;
     request.respond(Response::empty(200))?;
-    return Ok(content);
+    Ok(content)
 }

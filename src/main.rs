@@ -26,18 +26,11 @@ enum Commands {
         path: Option<PathBuf>,
     },
 }
-fn main() {
+fn main() -> anyhow::Result<()>{
     let cli = Cli::parse();
     match &cli.command {
-        Commands::Listen { path, once } => {
-            match listen::cli_listen(path.as_deref(), *once) {
-                Ok(()) => (),
-                Err(e) => eprintln!("Error {e}"),
-            };
-        }
-        Commands::Run { path } => match runner::run(path.as_deref()) {
-            Ok(()) => (),
-            Err(e) => eprintln!("Error {e}"),
-        },
+        Commands::Listen { path, once } => listen::cli_listen(path.as_deref(), *once)?,
+        Commands::Run { path } => runner::run(path.as_deref())?,
     };
+    Ok(())
 }
