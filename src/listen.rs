@@ -1,4 +1,5 @@
 use crate::server::listen;
+use anyhow::Context;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -37,13 +38,20 @@ fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
 }
 pub fn cli_listen(path: Option<&Path>, once: bool) -> Result<()> {
     let server = tiny_http::Server::http("127.0.0.1:27121")
-        .map_err(|e| anyhow::anyhow!("Couldn't lift server: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Failed to start server: {}", e))?;
     loop {
-        let output =
-            listen(&server).map_err(|e| anyhow::anyhow!("Error while reading request: {}", e))?;
-        if let Err(e) = handle_problem(&output, path) {
-            eprintln!("Error handling problem: {e}");
+        if once {
+            let output = listen(&server).context("Error while reading request")?;
+            handle_problem(&output, path)?;
+            return Ok(());
         }
-        if once {return Ok(());}
+        match listen(&server) {
+            Ok(output) => {
+                if let Err(e) = handle_problem(&output, path) {
+                    eprintln!("Error handling problem: {e}");
+                }
+            },
+            Err(e) => eprintln!("Error while reading request {e}"),
+        }
     }
 }
