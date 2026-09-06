@@ -34,7 +34,7 @@ fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
         fs::write(path.join(&format!("tests/{}.in", i + 1)), &test.input)?;
         fs::write(path.join(&format!("tests/{}.out", i + 1)), &test.output)?;
     }
-    fs::write(path.join("main.cpp"), "")?;
+    if !path.join("main.cpp").exists() {fs::write(path.join("main.cpp"), "")?;}
     Ok(())
 }
 pub fn cli_listen(path: Option<&Path>, once: bool) -> Result<()> {
