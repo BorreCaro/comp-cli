@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 mod listen;
+mod runner;
 mod server;
 
 /// Utility tool for competitive companion
@@ -20,6 +21,10 @@ enum Commands {
         #[arg(short, long)]
         once: bool,
     },
+    Run {
+        #[arg(value_name = "PATH")]
+        path: Option<PathBuf>,
+    },
 }
 fn main() {
     let cli = Cli::parse();
@@ -30,5 +35,9 @@ fn main() {
                 Err(e) => eprintln!("Error {e}"),
             };
         }
+        Commands::Run { path } => match runner::run(path.as_deref()) {
+            Ok(()) => (),
+            Err(e) => eprintln!("Error {e}"),
+        },
     };
 }
