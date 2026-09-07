@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -9,7 +9,7 @@ fn compile(source: &Path, path: &Path) -> Result<()> {
         .arg("-std=c++23")
         .arg("-o")
         .arg(path.join("sol").with_extension(std::env::consts::EXE_EXTENSION))
-        .output()?;
+        .output().context("Error launching g++")?;
 
     if !(comp_out.status.success()) {
         bail!(String::from_utf8_lossy(&comp_out.stderr).into_owned());
@@ -20,15 +20,15 @@ fn compare_outputs(out1: &str, out2: &str) -> bool {
     out1.split_whitespace().eq(out2.split_whitespace())
 }
 fn manage_test(path: &Path, tests_dir: &Path, i: u32) -> Result<()> {
-    let test_in = File::open(tests_dir.join(format!("{i}.in")))?;
-    let output = Command::new(path.join("sol").with_extension(std::env::consts::EXE_EXTENSION)).stdin(test_in).output()?;
+    let test_in = File::open(tests_dir.join(format!("{i}.in"))).context(format!("Couldn't open {}/{i}.in", tests_dir.display()))?;
+    let output = Command::new(path.join("sol").with_extension(std::env::consts::EXE_EXTENSION)).stdin(test_in).output().context(format!("Failed to launch {}", path.join("sol").with_extension(std::env::consts::EXE_EXTENSION).display(), ))?;
     if !output.status.success() {
         println!("Test {i}: RTE");
         println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         return Ok(());
     }
     let output = String::from_utf8_lossy(&output.stdout);
-    let test_out = fs::read_to_string(tests_dir.join(format!("{i}.out")))?;
+    let test_out = fs::read_to_string(tests_dir.join(format!("{i}.out"))).context(format!("Couldn't read {}/{i}.out", tests_dir.display()))?;
     print!("Test {i}: ");
     if compare_outputs(&output, &test_out){
         println!("OK");

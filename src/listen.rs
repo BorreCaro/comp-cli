@@ -31,10 +31,10 @@ fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
     };
     fs::create_dir_all(&path.join("tests"))?;
     for (i, test) in d.tests.iter().enumerate() {
-        fs::write(path.join(&format!("tests/{}.in", i + 1)), &test.input)?;
-        fs::write(path.join(&format!("tests/{}.out", i + 1)), &test.output)?;
+        fs::write(path.join(&format!("tests/{}.in", i + 1)), &test.input).context(format!("{}/tests/{}.in", path.display(), i+1))?;
+        fs::write(path.join(&format!("tests/{}.out", i + 1)), &test.output).context(format!("{}/tests/{}.out", path.display(), i+1))?;
     }
-    if !path.join("main.cpp").exists() {fs::write(path.join("main.cpp"), "")?;}
+    if !path.join("main.cpp").exists() {fs::write(path.join("main.cpp"), "").context("Couldn't write main.cpp")?;}
     Ok(())
 }
 pub fn cli_listen(path: Option<&Path>, once: bool) -> Result<()> {
