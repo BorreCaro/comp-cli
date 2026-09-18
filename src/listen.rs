@@ -18,9 +18,9 @@ struct Data {
 }
 fn normalize_name(name: &str) -> String {
     name.to_lowercase()
-        .replace(" ", "_")
         .chars()
         .skip(3)
+        .map(|c| if c.is_ascii_alphanumeric() {c} else { '_' })
         .collect()
 }
 fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
