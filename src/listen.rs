@@ -3,7 +3,6 @@ use anyhow::Context;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use tiny_http;
 use std::path::PathBuf;
 use std::path::Path;
 #[derive(Serialize, Deserialize)]
@@ -24,15 +23,15 @@ fn normalize_name(name: &str) -> String {
         .collect()
 }
 fn handle_problem(output: &str, path: Option<&Path>) -> Result<()>{
-    let d = serde_json::from_str::<Data>(&output)?;
+    let d = serde_json::from_str::<Data>(output)?;
     let path = match path {
         Some(p) => p.to_path_buf(),
-        None => PathBuf::from(format!("{}", normalize_name(&d.name))),
+        None => PathBuf::from(normalize_name(&d.name).to_string()),
     };
-    fs::create_dir_all(&path.join("tests"))?;
+    fs::create_dir_all(path.join("tests"))?;
     for (i, test) in d.tests.iter().enumerate() {
-        fs::write(path.join(&format!("tests/{}.in", i + 1)), &test.input).context(format!("{}/tests/{}.in", path.display(), i+1))?;
-        fs::write(path.join(&format!("tests/{}.out", i + 1)), &test.output).context(format!("{}/tests/{}.out", path.display(), i+1))?;
+        fs::write(path.join(format!("tests/{}.in", i + 1)), &test.input).context(format!("{}/tests/{}.in", path.display(), i+1))?;
+        fs::write(path.join(format!("tests/{}.out", i + 1)), &test.output).context(format!("{}/tests/{}.out", path.display(), i+1))?;
     }
     if !path.join("main.cpp").exists() {fs::write(path.join("main.cpp"), "").context("Couldn't write main.cpp")?;}
     Ok(())
