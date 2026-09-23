@@ -30,11 +30,11 @@ enum Commands {
         limit: u64,
     },
 }
-fn main() -> anyhow::Result<()>{
+fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     match &cli.command {
         Commands::Listen { path, once } => listen::cli_listen(path.as_deref(), *once)?,
-        Commands::Run { path, limit} => runner::run(path.as_deref(), *limit)?,
+        Commands::Run { path, limit } => runner::run(path.as_deref(), *limit)?,
     };
     Ok(())
 }
