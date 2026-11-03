@@ -73,3 +73,13 @@ comp-cli run
 # specify folder and custom time limit (in seconds)
 comp-cli run ./my_problem -l 2
 ```
+
+## Known limitations
+
+- `run` waits for the solution to exit before draining its stdout/stderr.
+  A solution that writes more than the kernel pipe buffer (~64 KiB) before
+  exiting blocks on write and is reported as TLE, even if it would have
+  finished immediately. This does not affect infinite loops (TLE either way),
+  and sample tests are small enough that it is unlikely in normal use.
+  Revisit if manual tests or stress testing are added.
+
