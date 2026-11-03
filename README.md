@@ -37,6 +37,33 @@ problem_name/
     └── ...
 ```
 
+## Templates
+
+`main.cpp` is not created empty. When `listen` receives a problem for a
+folder that has no `main.cpp` yet, it copies a template there. An existing
+`main.cpp` is never overwritten, so re-clicking the extension is safe.
+
+The template is copied verbatim — no placeholders, no substitutions. It is
+resolved once, when `comp-cli listen` starts:
+
+1. `~/.config/comp-cli/template.cpp` (respects `$XDG_CONFIG_HOME`)
+2. otherwise, a default template embedded in the binary
+   (`assets/default_template.cpp`)
+
+To customize it, create the config file:
+
+```sh
+mkdir -p ~/.config/comp-cli
+cp assets/default_template.cpp ~/.config/comp-cli/template.cpp
+```
+
+Notes:
+
+- the template is read once at startup — restart `comp-cli listen` after editing it
+- an empty template file produces an empty `main.cpp`; the file is used as-is
+- if the template exists but cannot be read (permissions, invalid UTF-8),
+  `listen` exits with an error naming the path instead of silently falling back
+
 Compile `main.cpp` and run all tests:
 
 ```sh
