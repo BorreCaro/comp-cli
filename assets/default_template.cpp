@@ -21,6 +21,7 @@ using vll = vector<ll>;
 #define all(x) (x).begin(), (x).end()
 #define rall(x) (x).rbegin(), (x).rend()
 #define sz(x) (int)(x).size()
+#define d(x) cout<< #x<< " " << x<<el
 #define pb push_back
 #define fi first
 #define se second
@@ -64,6 +65,10 @@ void io_formatting_tricks() {
     // 3. Imprimir en base hexadecimal, octal y volver a
     // decimal:
     cout << hex << 255 << " " << oct << 255 << dec << "\n";
+}
+
+ostream& operator<<(ostream& os, const pii& pa) { // DEBUGGING
+  return os << "("<< pa.fi << ", " << pa.se << ")";
 }
 
 void solve() {
