@@ -41,7 +41,7 @@ fn load_template() -> Result<String> {
         }),
     }
 }
-fn handle_problem(output: &str, path: Option<&Path>, template: &str) -> Result<()> {
+fn handle_problem(output: &str, path: Option<&Path>, template: &str, zed: bool) -> Result<()> {
     let d = serde_json::from_str::<Data>(output)?;
     let path = match path {
         Some(p) => p.to_path_buf(),
@@ -59,20 +59,27 @@ fn handle_problem(output: &str, path: Option<&Path>, template: &str) -> Result<(
         fs::write(path.join("main.cpp"), template)
             .with_context(|| format!("Couldn't write main.cpp at {}", path.display()))?;
     }
+    if zed {
+        std::process::Command::new("zeditor")
+            .arg("-e")
+            .arg(fs::canonicalize(path.join("main.cpp"))?)
+            .status()
+            .context("Couldn't open zed")?;
+    }
     Ok(())
 }
-pub fn cli_listen(path: Option<&Path>, once: bool) -> Result<()> {
+pub fn cli_listen(path: Option<&Path>, once: bool, zed: bool) -> Result<()> {
     let server = tiny_http::Server::http("127.0.0.1:27121")
         .map_err(|e| anyhow::anyhow!("Failed to start server: {}", e))?;
     let template = load_template()?;
     if once {
         let output = listen(&server).context("Error while reading request")?;
-        return handle_problem(&output, path, &template);
+        return handle_problem(&output, path, &template, zed);
     }
     loop {
         match listen(&server) {
             Ok(output) => {
-                if let Err(e) = handle_problem(&output, path, &template) {
+                if let Err(e) = handle_problem(&output, path, &template, zed) {
                     eprintln!("Error handling problem: {e}");
                 }
             }

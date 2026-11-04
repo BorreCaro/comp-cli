@@ -20,6 +20,9 @@ enum Commands {
         /// Listen to one problem only
         #[arg(short, long)]
         once: bool,
+        /// Open inside zed
+        #[arg(long)]
+        zed: bool,
     },
     /// Compiles, runs and compares program output with tests
     Run {
@@ -33,7 +36,7 @@ enum Commands {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     match &cli.command {
-        Commands::Listen { path, once } => listen::cli_listen(path.as_deref(), *once)?,
+        Commands::Listen { path, once, zed } => listen::cli_listen(path.as_deref(), *once, *zed)?,
         Commands::Run { path, limit } => runner::run(path.as_deref(), *limit)?,
     };
     Ok(())
