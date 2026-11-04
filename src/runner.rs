@@ -31,9 +31,6 @@ fn compile(source: &Path, path: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn compare_outputs(out1: &str, out2: &str) -> bool {
-    out1.split_whitespace().eq(out2.split_whitespace())
-}
 
 fn print_veredict(veredict: TestVerdict, test_out: &str, err: &str, i: u64) {
     print!("Test {i}: ");
@@ -74,7 +71,7 @@ fn get_veredict(child: &mut Child, limit: u64, test_out: &str) -> Result<TestVer
             .read_to_string(&mut output)
             .context("Failed to read stdout")?;
     };
-    if compare_outputs(&output, test_out) {
+    if output.eq(test_out) {
         Ok(TestVerdict::Ok)
     } else {
         Ok(TestVerdict::WrongAnswer { out: output })
